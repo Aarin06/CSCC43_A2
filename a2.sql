@@ -40,15 +40,56 @@ LIMIT 1)
 
 --Query 4
 INSERT INTO query4
-()
+(SELECT cl.bname, count(cl.rnum) as totalrooms 
+FROM classroom cl 
+JOIN course c ON c.cid = cl.cid
+WHERE c.dcode = 'CSC'
+GROUP BY cl.bname
+ORDER BY totalrooms DESC)
+
+CREATE VIEW CurrentSem AS 
+SELECT DISTINCT cs.year, cs.semester
+FROM courseSection cs
+WHERE cs.year = (SELECT MAX(cs.year) FROM courseSection cs)
+AND cs.semester = (SELECT MAX(cs.semester) FROM courseSection cs WHERE cs.year = (SELECT MAX(cs.year) FROM courseSection cs))
+
+CREATE VIEW AvgGrades AS 
+SELECT sc.sid, AVG(sc.grade) as average
+FROM courseSection cs 
+JOIN studentCourse sc ON cs.csid = sc.csid
+WHERE (cs.year,cs.semester) not in (select * from CurrentSem) 
+GROUP BY sc.sid
+
+CREATE VIEW DepartmentAvg AS
+SELECT d.dcode, MAX(ag.average) as deptavg
+FROM AvgGrades ag
+JOIN student s ON s.sid = ag.sid 
+JOIN department d ON d.dcode = s.dcode
+GROUP BY d.dcode
 
 --Query 5
 INSERT INTO query5
-()
+(SELECT d.dname, s.sid, s.sfirstname, s.slastname, da.deptavg
+FROM DepartmentAvg da
+JOIN department d ON da.dcode = d.dcode
+JOIN AvgGrades ag ON ag.average = da.deptavg
+JOIN student s ON s.sid = ag.sid)
 
 --Query 6
 INSERT INTO query6
-()
+(SELECT st.sfirstname, st.slastname, cs1.cid, cs1.year, cs1.semester 
+FROM student st 
+JOIN studentCourse s1 ON st.sid = s1.sid
+JOIN courseSection cs1 ON s1.csid = cs1.csid
+JOIN prerequisites p ON p.cid = cs1.cid
+WHERE p.pcid IN (SELECT cs2.cid
+  FROM studentCourse s2
+  JOIN courseSection cs2 ON s.csid = cs2.csid
+  JOIN prerequisites p ON p.cid = cs2.cid
+  WHERE s1.sid = s2.sid 
+  AND cs1.year>= cs2.year
+  AND cs1.semester < cs2.semester)
+)
 
 --Query 7
 INSERT INTO query7
