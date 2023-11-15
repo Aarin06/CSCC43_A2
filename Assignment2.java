@@ -50,7 +50,7 @@ public class Assignment2 {
     }
 
 	}
-
+  //what to do if student alreadt exists
 	public boolean insertStudent(int sid, String lastName, String firstName,
 			String sex, int age, String dcode, int yearOfStudy) {
 		try {
@@ -66,14 +66,13 @@ public class Assignment2 {
         String dcodeVal = resultSet.getString("dcode").trim();
         if (dcode.equals(dcodeVal)) {
           validDcode = true;
-          break;
         }
       }
 			statement.close();
 			resultSet.close();
 			
-			if (validDcode && (sex.equals('M') || sex.equals('F')) && yearOfStudy > 0 && yearOfStudy < 5) {
-				String sqlUpdate = "INSERT INTO student (sid, slastname, sfirstname, sex, age, dcode, yearofstudy) VALUES (?, ?, ?, ?, ?, ?, ?)";
+			if (validDcode && (sex.equals("M") || sex.equals("F")) && yearOfStudy > 0 && yearOfStudy < 5) {
+				String sqlUpdate = "INSERT INTO A2.student (sid, slastname, sfirstname, sex, age, dcode, yearofstudy) VALUES (?, ?, ?, ?, ?, ?, ?)";
         PreparedStatement ps = connection.prepareStatement(sqlUpdate);
         ps.setInt(1, sid);
         ps.setString(2, lastName);
@@ -115,6 +114,7 @@ public class Assignment2 {
 		
 	}
 
+  //what to do if student has no classes hence no avg bc they are not returned
 	public String getStudentInfo(int sid) {
 		
     try {
@@ -306,7 +306,7 @@ public class Assignment2 {
 				return new ArrayList<Integer>();
 			}
 			
-			
+			//fix this doesnt work use from q6
 			String sqlInsert = "INSERT INTO A2.prerequisites (cid, dcode, pcid, pdcode) VALUES (?, ?, ?, ?)";
 			ps = connection.prepareStatement(sqlInsert);
 			ps.setInt(1, cid);
@@ -352,7 +352,7 @@ public class Assignment2 {
 			return new ArrayList<Integer>();
 		}
 	}
-
+//has a problem
 	public boolean updateDB() {
 		try {
 			String createMaleStudentsInCS = "CREATE TABLE IF NOT EXISTS maleStudentsInCS("
