@@ -1,4 +1,3 @@
-package a2;
 import java.sql.*;
 import java.util.*;
 
