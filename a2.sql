@@ -95,6 +95,7 @@ JOIN student s ON s.sid = ag.sid);
 
 DROP VIEW DepartmentAvg;
 DROP VIEW AvgGrades;
+
 --Query 6
 CREATE VIEW StudentPrereq AS
 SELECT st.sfirstname, st.slastname, c.cname, cs1.year, cs1.semester 
@@ -109,19 +110,6 @@ WHERE (p1.pcid, p1.pdcode) IN (SELECT cs2.cid, cs2.dcode
   WHERE s1.sid = s2.sid 
   AND ((cs1.year = cs2.year
   AND cs1.semester > cs2.semester) OR (cs1.year > cs2.year)));
-
---might need this
-CREATE VIEW coursesToRemove AS
-(SELECT *
-FROM StudentPrereq s)
-UNION
-(SELECT st.sfirstname, st.slastname, c.cname, cs1.year, cs1.semester 
-FROM student st 
-JOIN studentCourse s1 ON st.sid = s1.sid
-JOIN courseSection cs1 ON s1.csid = cs1.csid
-JOIN course c ON c.cid = cs1.cid
-JOIN prerequisites p1 ON p1.pcid = cs1.cid AND p1.pdcode = cs1.dcode);
-
 
 INSERT INTO query6 (fname, lname, cname, year, semester)
 (SELECT st.sfirstname, st.slastname, c.cname, cs1.year, cs1.semester 

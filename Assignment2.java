@@ -50,7 +50,7 @@ public class Assignment2 {
     }
 
 	}
-  //what to do if student alreadt exists
+  //what to do if student already exists check piazza
 	public boolean insertStudent(int sid, String lastName, String firstName,
 			String sex, int age, String dcode, int yearOfStudy) {
 		try {
@@ -281,7 +281,7 @@ public class Assignment2 {
 			return "";
 		}
 	}
-
+  // check this again
 	public ArrayList<Integer> addPrereq(int cid, String dcode, int pcid, String pdcode) {
 		try {
 			boolean courseValid = false;
@@ -306,7 +306,6 @@ public class Assignment2 {
 				return new ArrayList<Integer>();
 			}
 			
-			//fix this doesnt work use from q6
 			String sqlInsert = "INSERT INTO A2.prerequisites (cid, dcode, pcid, pdcode) VALUES (?, ?, ?, ?)";
 			ps = connection.prepareStatement(sqlInsert);
 			ps.setInt(1, cid);
@@ -355,7 +354,7 @@ public class Assignment2 {
 //has a problem
 	public boolean updateDB() {
 		try {
-			String createMaleStudentsInCS = "CREATE TABLE IF NOT EXISTS maleStudentsInCS("
+			String createMaleStudentsInCS = "CREATE TABLE IF NOT EXISTS A2.maleStudentsInCS("
 					+ "sid INTEGER,"
 					+ "fname CHAR(20),"
 					+ "lname CHAR(20),"
@@ -368,9 +367,9 @@ public class Assignment2 {
 			}
 			
 			String sqlInsert = "INSERT INTO A2.maleStudentsInCS (sid, fname, lname) "
-					+ "SELECT s.sid, s.sfirstname AS fname, s.lastname AS lname "
-					+ "FROM student s "
-					+ "JOIN department d "
+					+ "SELECT s.sid, s.sfirstname AS fname, s.slastname AS lname "
+					+ "FROM A2.student s "
+					+ "JOIN A2.department d "
 					+ "ON s.dcode = d.dcode "
 					+ "WHERE d.dname = 'Computer Science' AND s.yearofstudy = 2 AND s.sex = 'M'";
 			
