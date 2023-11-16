@@ -215,7 +215,6 @@ public class Assignment2 {
 			ps.setInt(2, sid);
 			
 			int rowsAffected = ps.executeUpdate();
-			
       resultSet.close();
 			ps.close();
 			return rowsAffected == 1;
@@ -310,7 +309,7 @@ public class Assignment2 {
 			return "";
 		}
 	}
-  // check this again
+
 	public ArrayList<Integer> addPrereq(int cid, String dcode, int pcid, String pdcode) {
 		try {
 			boolean courseValid = false;
@@ -356,7 +355,8 @@ public class Assignment2 {
 					+ "FROM studentCourse sc "
 					+ "JOIN courseSection cs "
 					+ "ON sc.csid = cs.csid "
-					+ "WHERE cs.cid = ? AND cs.dcode = ?)";
+					+ "WHERE cs.cid = ? AND cs.dcode = ?) "
+					+ "ORDER BY sid";
 			
 			ps = connection.prepareStatement(sqlQuery);
 			ps.setInt(1, cid);
@@ -373,7 +373,6 @@ public class Assignment2 {
 			resultSet.close();
 			ps.close();
 			
-			Collections.sort(res); 
 			return res;
 		} catch (Exception e) {
 			return new ArrayList<Integer>();
