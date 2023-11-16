@@ -1,5 +1,3 @@
-package Assignment2;
-
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -64,18 +62,13 @@ public class Assignment2 {
 			
 			ResultSet resultSet = statement.executeQuery(sqlQuery);
 			
-			boolean studentExists = false;
+
 			while (resultSet.next()) {
 				int curSid = resultSet.getInt("sid");
-		        if (sid == curSid) {
-		        	studentExists = true;
-		        }
+        if (sid == curSid) {
+          return false;
+        }
 			}
-			
-			if (studentExists) {
-				return false;
-			}
-			
 			
 			statement = connection.createStatement();
 			 
@@ -86,11 +79,11 @@ public class Assignment2 {
 			boolean validDcode = false;
 			
 			while (resultSet.next()) {
-		        String dcodeVal = resultSet.getString("dcode").trim();
-		        if (dcode.equals(dcodeVal)) {
-		          validDcode = true;
-		        }
-		      }
+        String dcodeVal = resultSet.getString("dcode").trim();
+        if (dcode.equals(dcodeVal)) {
+          validDcode = true;
+        }
+      }
 			statement.close();
 			resultSet.close();
 			
@@ -137,7 +130,6 @@ public class Assignment2 {
 		
 	}
 
-  //what to do if student has no classes hence no avg bc they are not returned
 	public String getStudentInfo(int sid) {
 		
     try {
