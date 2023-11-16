@@ -1,5 +1,8 @@
+package Assignment2;
+
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class Assignment2 {
 
@@ -54,25 +57,45 @@ public class Assignment2 {
 	public boolean insertStudent(int sid, String lastName, String firstName,
 			String sex, int age, String dcode, int yearOfStudy) {
 		try {
+			
 			Statement statement = connection.createStatement();
 			 
-			String sqlQuery = "SELECT dcode FROM A2.department";
+			String sqlQuery = "SELECT sid FROM student";
 			
 			ResultSet resultSet = statement.executeQuery(sqlQuery);
+			
+			boolean studentExists = false;
+			while (resultSet.next()) {
+				int curSid = resultSet.getInt("sid");
+		        if (sid == curSid) {
+		        	studentExists = true;
+		        }
+			}
+			
+			if (studentExists) {
+				return false;
+			}
+			
+			
+			statement = connection.createStatement();
+			 
+			sqlQuery = "SELECT dcode FROM department";
+			
+			resultSet = statement.executeQuery(sqlQuery);
 			
 			boolean validDcode = false;
 			
 			while (resultSet.next()) {
-        String dcodeVal = resultSet.getString("dcode").trim();
-        if (dcode.equals(dcodeVal)) {
-          validDcode = true;
-        }
-      }
+		        String dcodeVal = resultSet.getString("dcode").trim();
+		        if (dcode.equals(dcodeVal)) {
+		          validDcode = true;
+		        }
+		      }
 			statement.close();
 			resultSet.close();
 			
 			if (validDcode && (sex.equals("M") || sex.equals("F")) && yearOfStudy > 0 && yearOfStudy < 5) {
-				String sqlUpdate = "INSERT INTO A2.student (sid, slastname, sfirstname, sex, age, dcode, yearofstudy) VALUES (?, ?, ?, ?, ?, ?, ?)";
+				String sqlUpdate = "INSERT INTO student (sid, slastname, sfirstname, sex, age, dcode, yearofstudy) VALUES (?, ?, ?, ?, ?, ?, ?)";
         PreparedStatement ps = connection.prepareStatement(sqlUpdate);
         ps.setInt(1, sid);
         ps.setString(2, lastName);
@@ -87,7 +110,7 @@ public class Assignment2 {
 			}
       return false;
 		} catch (Exception e) {
-        return false;
+			return false;
 		}
 	}
 
@@ -96,7 +119,7 @@ public class Assignment2 {
 			if (year <= 0 || year >= 5) {
 				return -1;
 			}
-			String sqlQuery = "SELECT count(*) AS studentCount FROM A2.student WHERE yearofstudy = ?";
+			String sqlQuery = "SELECT count(*) AS studentCount FROM student WHERE yearofstudy = ?";
 			PreparedStatement ps = connection.prepareStatement(sqlQuery);
 			ps.setInt(1, year);
 			
@@ -119,8 +142,9 @@ public class Assignment2 {
 		
     try {
 			String sqlQuery = "SELECT s.sid, s.slastname, s.sfirstname, s.sex, s.age, d.dname, s.yearofstudy, AVG(sc.grade) AS average "
-					+ "FROM A2.student s JOIN A2.studentCourse sc ON s.sid = sc.sid "
-					+ "JOIN A2.department d ON d.dcode = s.dcode "
+					+ "FROM student s "
+					+ "LEFT JOIN studentCourse sc ON s.sid = sc.sid "
+					+ "JOIN department d ON d.dcode = s.dcode "
 					+ "WHERE s.sid = ? "
           + "GROUP BY s.sid, s.slastname, s.sfirstname, s.sex, s.age, d.dname, s.yearofstudy";
 			PreparedStatement ps = connection.prepareStatement(sqlQuery);
@@ -129,6 +153,7 @@ public class Assignment2 {
 			ResultSet resultSet = ps.executeQuery();
 			
 			String output = "";
+			String average = "";
 			if (resultSet.next()) {
 				String lname = resultSet.getString("slastname").trim();
 				String fname = resultSet.getString("sfirstname").trim();
@@ -136,9 +161,21 @@ public class Assignment2 {
 				int age = resultSet.getInt("age");
 				String dname = resultSet.getString("dname").trim();
 				int yos = resultSet.getInt("yearofstudy");
-				int average = resultSet.getInt("average");
-				output = fname + ":" + lname + ":" + sex + ":" + String.valueOf(age) + ":" + String.valueOf(yos) + ":" + dname + ":" + String.valueOf(average);			
+				average = String.valueOf(resultSet.getInt("average"));
+				output = fname + ":" + lname + ":" + sex + ":" + String.valueOf(age) + ":" + String.valueOf(yos) + ":" + dname + ":";			
 			}
+			
+			sqlQuery = "SELECT sid FROM studentCourse WHERE sid = ?";
+			ps = connection.prepareStatement(sqlQuery);
+			ps.setInt(1, sid);
+			
+			resultSet = ps.executeQuery();
+			
+			if (!resultSet.next()) {
+				average = "null";
+			}
+			output += average;
+
 			resultSet.close();
 			ps.close();
 			
@@ -150,7 +187,7 @@ public class Assignment2 {
 
 	public boolean switchDepartment(int sid, String oldDcode, String newDcode) {
 		try {
-			String sqlQuery = "SELECT dcode FROM A2.student s WHERE s.sid = ?";
+			String sqlQuery = "SELECT dcode FROM student s WHERE s.sid = ?";
 			PreparedStatement ps = connection.prepareStatement(sqlQuery);
 			ps.setInt(1, sid);
 			
@@ -164,7 +201,7 @@ public class Assignment2 {
 			}
 			
 			boolean newDcodeExists = false;
-			sqlQuery = "SELECT dcode FROM A2.department";
+			sqlQuery = "SELECT dcode FROM department";
 			ps = connection.prepareStatement(sqlQuery);
 			
 			resultSet = ps.executeQuery();
@@ -180,7 +217,7 @@ public class Assignment2 {
 				return false;
 			}
 
-			String sqlUpdate = "UPDATE A2.student SET dcode = ? WHERE sid = ?";
+			String sqlUpdate = "UPDATE student SET dcode = ? WHERE sid = ?";
 			ps = connection.prepareStatement(sqlUpdate);
 			ps.setString(1, newDcode);
 			ps.setInt(2, sid);
@@ -200,7 +237,7 @@ public class Assignment2 {
 	public boolean deleteDept(String dcode) {
 		try {
 			boolean dcodeExists = false;
-			String sqlQuery = "SELECT dcode FROM A2.department";
+			String sqlQuery = "SELECT dcode FROM department";
 			PreparedStatement ps = connection.prepareStatement(sqlQuery);
 			
 			ResultSet resultSet = ps.executeQuery();
@@ -217,11 +254,11 @@ public class Assignment2 {
 			}
 			
 			boolean dcodeReferenced = false;
-			sqlQuery = "(SELECT dcode FROM A2.student)"
+			sqlQuery = "(SELECT dcode FROM student)"
 					+ "UNION"
-					+ "(SELECT dcode FROM A2.instructor)"
+					+ "(SELECT dcode FROM instructor)"
 					+ "UNION"
-					+ "(SELECT dcode FROM A2.course)";
+					+ "(SELECT dcode FROM course)";
 			ps = connection.prepareStatement(sqlQuery);
 			
 			resultSet = ps.executeQuery();
@@ -237,7 +274,7 @@ public class Assignment2 {
 				return false;
 			}
 			
-			String sqlDelete = "DELETE FROM A2.department WHERE dcode = ?";
+			String sqlDelete = "DELETE FROM department WHERE dcode = ?";
 			ps = connection.prepareStatement(sqlDelete);
 			ps.setString(1, dcode);
 			
@@ -254,10 +291,10 @@ public class Assignment2 {
 
 	public String listCourses(int sid) {
 		try {
-			String sqlQuery = "SELECT c.cname, d.dname, cs.semester, cs.year, sc.grade FROM A2.courseSection cs "
-					+ "JOIN A2.studentCourse sc ON cs.csid = sc.csid "
-					+ "JOIN A2.course c ON c.cid = cs.cid "
-					+ "JOIN A2.department d ON d.dcode = cs.dcode "
+			String sqlQuery = "SELECT c.cname, d.dname, cs.semester, cs.year, sc.grade FROM courseSection cs "
+					+ "JOIN studentCourse sc ON cs.csid = sc.csid "
+					+ "JOIN course c ON c.cid = cs.cid "
+					+ "JOIN department d ON d.dcode = cs.dcode "
 					+ "WHERE sc.sid = ? ORDER BY sc.grade;";
 			PreparedStatement ps = connection.prepareStatement(sqlQuery);
 			ps.setInt(1, sid);
@@ -286,7 +323,7 @@ public class Assignment2 {
 		try {
 			boolean courseValid = false;
 			boolean prereqValid = false;
-			String sqlQuery = "SELECT cid, dcode FROM A2.course";
+			String sqlQuery = "SELECT cid, dcode FROM course";
 			PreparedStatement ps = connection.prepareStatement(sqlQuery);
 			
 			ResultSet resultSet = ps.executeQuery();
@@ -305,8 +342,7 @@ public class Assignment2 {
 			if (!courseValid || !prereqValid) {
 				return new ArrayList<Integer>();
 			}
-			
-			String sqlInsert = "INSERT INTO A2.prerequisites (cid, dcode, pcid, pdcode) VALUES (?, ?, ?, ?)";
+			String sqlInsert = "INSERT INTO prerequisites (cid, dcode, pcid, pdcode) VALUES (?, ?, ?, ?)";
 			ps = connection.prepareStatement(sqlInsert);
 			ps.setInt(1, cid);
 			ps.setString(2, dcode);
@@ -314,18 +350,17 @@ public class Assignment2 {
 			ps.setString(4, pdcode);
 			
 			int rowsAffected = ps.executeUpdate();
-			
 			if ( rowsAffected != 1) {
 				return new ArrayList<Integer>();
 			}
 			
-			sqlQuery = "(SELECT sc.sid"
+			sqlQuery = "(SELECT sc.sid "
 					+ "FROM studentCourse sc "
 					+ "JOIN courseSection cs "
 					+ "ON sc.csid = cs.csid "
 					+ "WHERE cs.cid = ? AND cs.dcode = ?) "
-					+ "EXCEPT"
-					+ "(SELECT sc.sid"
+					+ "EXCEPT "
+					+ "(SELECT sc.sid "
 					+ "FROM studentCourse sc "
 					+ "JOIN courseSection cs "
 					+ "ON sc.csid = cs.csid "
@@ -336,7 +371,6 @@ public class Assignment2 {
 			ps.setString(2, dcode);
 			ps.setInt(3, pcid);
 			ps.setString(4, pdcode);
-			
 			resultSet = ps.executeQuery();
 			
 			ArrayList<Integer> res = new ArrayList<Integer>();
@@ -346,37 +380,32 @@ public class Assignment2 {
 			}
 			resultSet.close();
 			ps.close();
+			
+			Collections.sort(res); 
 			return res;
 		} catch (Exception e) {
 			return new ArrayList<Integer>();
 		}
 	}
-//has a problem
 	public boolean updateDB() {
 		try {
-			String createMaleStudentsInCS = "CREATE TABLE IF NOT EXISTS A2.maleStudentsInCS("
+			String createMaleStudentsInCS = "CREATE TABLE IF NOT EXISTS maleStudentsInCS("
 					+ "sid INTEGER,"
 					+ "fname CHAR(20),"
-					+ "lname CHAR(20),"
+					+ "lname CHAR(20)"
 					+ ")";
 			PreparedStatement ps = connection.prepareStatement(createMaleStudentsInCS);
+			ps.execute();
 			
-			boolean createdTable = ps.execute();
-			if (!createdTable){
-				return false;
-			}
-			
-			String sqlInsert = "INSERT INTO A2.maleStudentsInCS (sid, fname, lname) "
+			String sqlInsert = "INSERT INTO maleStudentsInCS (sid, fname, lname) "
 					+ "SELECT s.sid, s.sfirstname AS fname, s.slastname AS lname "
-					+ "FROM A2.student s "
-					+ "JOIN A2.department d "
+					+ "FROM student s "
+					+ "JOIN department d "
 					+ "ON s.dcode = d.dcode "
 					+ "WHERE d.dname = 'Computer Science' AND s.yearofstudy = 2 AND s.sex = 'M'";
-			
 			ps = connection.prepareStatement(sqlInsert);
 			int rowsAffected = ps.executeUpdate();
 			ps.close();
-			
 			return rowsAffected >= 0; 
 			
 		} catch (Exception e) {

@@ -97,34 +97,19 @@ DROP VIEW DepartmentAvg;
 DROP VIEW AvgGrades;
 
 --Query 6
-CREATE VIEW StudentPrereq AS
-SELECT st.sfirstname, st.slastname, c.cname, cs1.year, cs1.semester 
-FROM student st 
-JOIN studentCourse s1 ON st.sid = s1.sid
-JOIN courseSection cs1 ON s1.csid = cs1.csid
-JOIN course c ON c.cid = cs1.cid
-JOIN prerequisites p1 ON p1.cid = cs1.cid AND p1.dcode = cs1.dcode
-WHERE (p1.pcid, p1.pdcode) IN (SELECT cs2.cid, cs2.dcode
-  FROM studentCourse s2
-  JOIN courseSection cs2 ON s2.csid = cs2.csid
-  WHERE s1.sid = s2.sid 
-  AND ((cs1.year = cs2.year
-  AND cs1.semester > cs2.semester) OR (cs1.year > cs2.year)));
-
 INSERT INTO query6 (fname, lname, cname, year, semester)
-(SELECT st.sfirstname, st.slastname, c.cname, cs1.year, cs1.semester 
-FROM student st 
-JOIN studentCourse s1 ON st.sid = s1.sid
-JOIN courseSection cs1 ON s1.csid = cs1.csid
-JOIN course c ON c.cid = cs1.cid
-JOIN prerequisites p1 ON p1.cid = cs1.cid AND p1.dcode = cs1.dcode
-EXCEPT 
-SELECT * FROM StudentPrereq
-);
-
-DROP VIEW coursesToRemove;
-DROP VIEW StudentPrereq;
-
+	SELECT DISTINCT st.sfirstname as fname, st.slastname as lname, c.cname, cs1.year, cs1.semester 
+	FROM student st 
+	JOIN studentCourse s1 ON st.sid = s1.sid
+	JOIN courseSection cs1 ON s1.csid = cs1.csid
+	JOIN course c ON c.cid = cs1.cid
+	JOIN prerequisites p1 ON p1.cid = cs1.cid AND p1.dcode = cs1.dcode
+	WHERE (p1.pcid, p1.pdcode) NOT IN (SELECT cs2.cid, cs2.dcode
+	  FROM studentCourse s2
+	  JOIN courseSection cs2 ON s2.csid = cs2.csid
+	  WHERE s1.sid = s2.sid 
+	  AND ((cs1.year = cs2.year
+	  AND cs1.semester > cs2.semester) OR (cs1.year > cs2.year)));
 
 --Query 7
 CREATE VIEW enrollment3CSAvg AS
